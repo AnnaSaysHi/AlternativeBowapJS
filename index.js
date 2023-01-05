@@ -4,7 +4,7 @@ let rafId;
 let particleArray = [];
 let mouseX = -10;
 let mouseY = -10;
-let tailCount = 2;
+let armCount = 2;
 let radiusDistance = 0;
 let speedMult = 1;
 let spinRotat = 2;
@@ -21,19 +21,20 @@ function onLoad() {
     canvas.addEventListener("mouseleave", onMouseLeave);
 
     ctx = canvas.getContext("2d");
-    let canvasSize = 800;
+    let canvasSize = 640;
     let canvasOrigin = canvasSize / 2;
     canvas.width = canvasSize;
     canvas.height = canvasSize;
 
     class Particle {
-        constructor(x, y, parent = 0, spin = 0, xv, yv) {
+        constructor(x, y, parent = 0, spin = 0, xv, yv, partAngle = 0) {
             this.x = x;
             this.y = y;
             this.r = radiusDistance;
 
             this.xv = xv;
-            this.yv = yv
+            this.yv = yv;
+            this.angle = partAngle;
 
             this.ox = x;
             this.oy = y;
@@ -42,10 +43,9 @@ function onLoad() {
             this.spin = spin;
 
             this.vs = spinRotat;
-            this.grazed = false;
 
             this.parent = parent;
-            this.tails = tailCount;
+            this.arms = armCount;
             this.size = 8;
             this.graze = 4;
             this.color = `hsl(${this.parent * 20},50%,50%)`;
@@ -62,9 +62,12 @@ function onLoad() {
             }
 
             //Draw Particles
-            ctx.fillStyle = this.color;
-            ctx.fillRect(this.x, this.y, this.size, this.size);
-            let sinF = Math.sin(this.spin / 20) * speedMult;
+            if(this.parent !== 0){
+                ctx.fillStyle = this.color;
+                ctx.beginPath();
+                ctx.ellipse(this.x, this.y, this.size / 2, this.size / 4, this.angle, 0, 2 * Math.PI);
+                ctx.fill();
+            }
 
             if (this.parent == 0) {
                 this.x = this.ox + this.r * Math.cos(this.spin)
@@ -72,7 +75,7 @@ function onLoad() {
                 this.spin += this.vr;
             }
 
-            for (let index = 0; index < this.tails; index++) {
+            for (let index = 0; index < this.arms; index++) {
                 if (this.parent == index + 1) {
                     this.x += this.xv;
                     this.y += this.yv;
@@ -80,8 +83,8 @@ function onLoad() {
             }
 
             if (this.parent == 0) {
-                for (let index = 0; index < this.tails; index++) {
-                    particleArray.push(new Particle(this.x, this.y, index + 1, this.spin, this.vs * Math.cos(angle + ((index + 1) / this.tails) * 2 * Math.PI), this.vs * Math.sin(angle + ((index + 1) / this.tails) * 2 * Math.PI)));
+                for (let index = 0; index < this.arms; index++) {
+                    particleArray.push(new Particle(this.x, this.y, index + 1, this.spin, this.vs * Math.cos(angle + ((index + 1) / this.arms) * 2 * Math.PI), this.vs * Math.sin(angle + ((index + 1) / this.arms) * 2 * Math.PI), angle + ((index + 1) / this.arms) * 2 * Math.PI));
 
                 }
             }
@@ -130,7 +133,7 @@ function onMouseLeave() {
 }
 
 function handleRestart() {
-    tailCount = document.getElementById("tailInput").value;
+    armCount = document.getElementById("armInput").value;
     radiusDistance = document.getElementById("radiusInput").value;
     speedMult = document.getElementById("speedMult").value;
     spinRotat = document.getElementById("spinRotat").value;
